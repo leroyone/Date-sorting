@@ -1,4 +1,4 @@
-function realLastRow (sheet, theCol) {
+function realLastRow(sheet, theCol) {
   
   var colData = sheet.getRange(1, theCol, sheet.getLastRow(), 1).getValues();
   var filtered = colData.filter(String);
