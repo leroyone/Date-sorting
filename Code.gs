@@ -48,7 +48,7 @@ function populateDates() {
 
 function fillEm(levelRange, days, times){
   
-  var studentsPerLesson = 6;
+  var studentsPerLesson = 7;
   
   var slots = [[],[],[],[],[],[],[]];
   for(var time=0; time<levelRange.length; time++){
