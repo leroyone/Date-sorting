@@ -125,7 +125,6 @@ function addAllMakeUp(){
 }
 
 
-
 function switchDates(){
   var spread = SpreadsheetApp.getActiveSpreadsheet();
   var theCells = spread.getActiveSheet().getActiveRange();  
@@ -135,19 +134,44 @@ function switchDates(){
   theCells.setValues(fixed);
 }
 
-function onEdit(e) {
-  var spread = SpreadsheetApp.getActiveSpreadsheet();
-  var theSheet = spread.getSheetByName("Students");
-  var theCol = getColByName(theSheet, "isvalid");
-  var theCells = theSheet.getRange(2,theCol,21,1);
-  if (
-    e.source.getSheetName() == "Students" &&
-    e.range.columnStart == theCol &&
-    e.range.columnEnd == theCol &&
-    e.range.rowStart >= 2 &&
-    e.range.rowEnd <= 21
-  ) {
-    theCells.clearContent();
+function levelCheckDates(theDate, available, daysOfTheWeek, availableSorted){
+  var theMonth = new Date(theDate);
+  theMonth.setDate(theDate.getDate() - theDate.getDate() + 1);
+  var theEnd = theDate.getMonth();
+  var allSlots = [];
+  for(theMonth; theMonth.getMonth() == theEnd; theMonth.setDate(theMonth.getDate()+1)){
+    var theDay = theMonth.getDay();
+    var theSlots = availableSorted[theDay];
+    if(theSlots != ""){
+      for(i=0;i<theSlots.length;i++){
+        allSlots.push([daysOfTheWeek[theDay] + " " + theSlots[i] + " (" + theMonth.toString().slice(4,10) + ")"]);
+      }
+    }
   }
+  return allSlots;
 }
 
+
+function fillLevelCheckForMonths(){
+  var spread = SpreadsheetApp.getActiveSpreadsheet();
+  var levelChSheet = spread.getSheetByName("Level Checks");
+  var available = levelChSheet.getRange(2,1,realLastRow(levelChSheet, 1),2).getValues();
+  var monthsOfTheYear = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var daysOfTheWeek = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var availableSorted = [[],[],[],[],[],[],[]];
+  for(each=0;each<available.length;each++){
+    var itsDax = daysOfTheWeek.indexOf(available[each][0]);
+    if(itsDax >= 0){
+      availableSorted[itsDax].push(available[each][1]);
+    }
+  }
+  var monthsToFill = getColDataByName(levelChSheet, "Months to fill");
+  for(i=0;i<monthsToFill.length;i++){
+    var whichMonth = monthsOfTheYear[monthsToFill[i].getMonth()];
+    var monthsSlots = levelCheckDates(monthsToFill[i], available, daysOfTheWeek, availableSorted);
+    Logger.log(monthsSlots);
+    levelChSheet.getRange(2, getColByName(levelChSheet, whichMonth),100,1).clearContent();
+    var putRange = levelChSheet.getRange(2, getColByName(levelChSheet, whichMonth),monthsSlots.length,1);
+    putRange.setValues(monthsSlots);
+  }
+}
