@@ -175,3 +175,55 @@ function fillLevelCheckForMonths(){
     putRange.setValues(monthsSlots);
   }
 }
+
+
+function nextWeek(){
+  var spread = SpreadsheetApp.getActiveSpreadsheet();
+  var lessonFiles = spread.getSheetByName("Lesson Files");
+  var getMe = lessonFiles.getRange(3, 1, 1, 2).getValues();
+  var putMe = lessonFiles.getRange(2, 1, 1, 2);
+  putMe.setValues(getMe);
+}
+
+function eightDates(){
+  var theSpread = SpreadsheetApp.getActive();
+  var makeUpSheet = theSpread.getSheetByName("Make Up Slots");
+  var studSheet = theSpread.getSheetByName("Students");
+  
+  var checkDate = makeUpSheet.getRange(1,27).getValue();
+  var thisWeek = new Date();
+  
+  var lessons = studSheet.getRange(2, getColByName(studSheet, "First Lesson"),1,2).getValues()[0];
+  var put = studSheet.getRange(2, getColByName(studSheet, "8 dates"));
+  var attendancePut = studSheet.getRange(2, getColByName(studSheet, "Attendance"));
+  put.clearContent();
+  
+  var daysOfTheWeek = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  
+  Logger.log(put.getValue());
+  Logger.log(lessons);
+  
+  var diff = thisWeek.getDay()-1;
+  thisWeek.setDate(thisWeek.getDate() - diff);
+  thisWeek.setHours(0,0,0,0);
+
+  Logger.log("This code works to compare to todays date");
+  Logger.log(thisWeek.toString());
+  Logger.log(checkDate);
+  Logger.log(thisWeek.toString() == checkDate);
+  
+  var putStuffHere = "";
+  var attendanceStuffHere = "";
+  for(i=0;i<4;i++){
+    for(x=0;x<2;x++){
+      var diff = (7*i)+daysOfTheWeek.indexOf(lessons[x].slice(0,3))
+      thisWeek.setDate(thisWeek.getDate()+diff);
+      putStuffHere = putStuffHere + lessons[x] + " (" + thisWeek.toString().slice(4,10) + "),";
+      thisWeek.setDate(thisWeek.getDate()-diff);
+      attendanceStuffHere = attendanceStuffHere + "o,"
+    }
+  }
+  
+  put.setValue(putStuffHere.slice(0,-1));
+  attendancePut.setValue(attendanceStuffHere.slice(0,-1));
+}
