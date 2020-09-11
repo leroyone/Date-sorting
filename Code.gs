@@ -226,10 +226,10 @@ function eightDates(whichRow){
 
 
 function dailyAttendanceMaker(){
+  var startRow = 23;
   var theSpread = SpreadsheetApp.getActiveSpreadsheet();
   var studSheet = theSpread.getSheetByName("Students");
   var attendanceColumn = getColByName(studSheet, "Attendance");
-  var startRow = 70;
   var allAttendances = studSheet.getRange(startRow, attendanceColumn, studSheet.getLastRow()-startRow+1 ,1).getValues().map(function(r){return r[0]});
   Logger.log(allAttendances);
   var allRowsToDo = [];
@@ -257,9 +257,9 @@ function fixAttendance(theString){
 
 
 function weeklyAttendanceUpdater(){
-  var startRow = 70;
+  var startRow = 23;
   var aDate = new Date();
-  aDate.setDate(aDate.getDate()+4);
+  aDate.setDate(aDate.getDate()+3);
   var thisWeek = whichWeek(aDate);
   var theSpread = SpreadsheetApp.getActiveSpreadsheet();
   var studSheet = theSpread.getSheetByName("Students");
@@ -267,10 +267,16 @@ function weeklyAttendanceUpdater(){
   var putDates = studSheet.getRange(startRow, getColByName(studSheet, "This Weeks MU"), studSheet.getLastRow()-startRow+1 ,1);
   var putMUDs = studSheet.getRange(startRow, getColByName(studSheet, "MUD1")+thisWeek, studSheet.getLastRow()-startRow+1 ,1);
   var putMUSlots = studSheet.getRange(startRow, getColByName(studSheet, "MU1")+thisWeek, studSheet.getLastRow()-startRow+1 ,1);
+  var putMUGs = studSheet.getRange(startRow, getColByName(studSheet, "MUG 1")+thisWeek, studSheet.getLastRow()-startRow+1 ,1);
+  var putTWGs = studSheet.getRange(startRow, getColByName(studSheet, "TWG"), studSheet.getLastRow()-startRow+1 ,1);
   var putAttendances = studSheet.getRange(startRow, attendanceColumn, studSheet.getLastRow()-startRow+1 ,1);
   
   var allAttendances = putAttendances.getValues().map(function(r){return r[0]});
   var allMUSlots = putMUSlots.getValues().map(function(r){return r[0]});
+  var allMUGs = putMUGs.getValues().map(function(r){return r[0]});
+  
+  var resetMUGs = [];
+  var thisWeekMUGs = [];
   var resetMe = [];
   var forAttendance = [];
   var forThisWeekDates = [];
@@ -278,10 +284,14 @@ function weeklyAttendanceUpdater(){
     resetMe.push(i+startRow);
     forAttendance.push([fixAttendance(allAttendances[i])]);
     forThisWeekDates.push([allMUSlots[i]]);
+    resetMUGs.push([1]);
+    thisWeekMUGs.push([allMUGs[i]]);
   }
   resetMe.forEach(eightDates);
   putDates.setValues(forThisWeekDates);
   putAttendances.setValues(forAttendance);
+  putMUGs.setValues(resetMUGs);
+  putTWGs.setValues(thisWeekMUGs);
   putMUDs.clearContent();
   putMUSlots.clearContent();
 }
