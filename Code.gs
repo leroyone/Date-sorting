@@ -225,6 +225,11 @@ function eightDates(whichRow){
 }
 
 
+function checkgguydfckjg(){
+  eightDates(1);
+}
+
+
 function dailyAttendanceMaker(){
   var startRow = 23;
   var theSpread = SpreadsheetApp.getActiveSpreadsheet();
