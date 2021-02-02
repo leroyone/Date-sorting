@@ -185,11 +185,13 @@ function nextWeek(){
   putMe.setValues(getMe);
 }
 
-function eightDates(whichRow){
+
+/**
+function oldEightDates(whichRow){
   var theSpread = SpreadsheetApp.getActiveSpreadsheet();
   var makeUpSheet = theSpread.getSheetByName("Make Up Slots");
   var studSheet = theSpread.getSheetByName("Students");
-  var checkDate = makeUpSheet.getRange(1,27).getValue();
+  //var checkDate = makeUpSheet.getRange(1,27).getValue();
   var thisWeek = new Date();
   var lessons = studSheet.getRange(whichRow, getColByName(studSheet, "First Lesson"),1,2).getValues()[0];
   if(lessons[0].length<2 || lessons[1].length<2){
@@ -204,11 +206,48 @@ function eightDates(whichRow){
   var diff = thisWeek.getDay()-1;
   thisWeek.setDate(thisWeek.getDate() - diff);
   thisWeek.setHours(0,0,0,0);
-  //Logger.log("This code works to compare to todays date");
-  //Logger.log(thisWeek.toString());
-  //Logger.log(checkDate);
-  //Logger.log(thisWeek.toString() == checkDate);
   thisWeek.setDate(thisWeek.getDate() + 7);
+  var putStuffHere = "";
+  var attendanceStuffHere = "";
+  for(i=0;i<4;i++){
+    for(x=0;x<2;x++){
+      var diff = (7*i)+daysOfTheWeek.indexOf(lessons[x].slice(0,3))
+      thisWeek.setDate(thisWeek.getDate()+diff);
+      putStuffHere = putStuffHere + lessons[x] + " (" + thisWeek.toString().slice(4,10) + "),";
+      thisWeek.setDate(thisWeek.getDate()-diff);
+      attendanceStuffHere = attendanceStuffHere + "false,"
+    }
+  }
+  put.setValue(putStuffHere.slice(0,-1));
+  attendancePut.setValue(attendanceStuffHere);
+}
+**/
+
+
+function addDatesForThisRow(){
+  var thisRow = 104;
+  eightDates(thisRow);
+}
+
+function eightDates(whichRow){
+  var theSpread = SpreadsheetApp.getActiveSpreadsheet();
+  var makeUpSheet = theSpread.getSheetByName("Make Up Slots");
+  var studSheet = theSpread.getSheetByName("Students");
+  //var checkDate = makeUpSheet.getRange(1,27).getValue();
+  var thisWeek = new Date();
+  var lessons = studSheet.getRange(whichRow, getColByName(studSheet, "First Lesson"),1,2).getValues()[0];
+  if(lessons[0].length<2 || lessons[1].length<2){
+    return;
+  }
+  var put = studSheet.getRange(whichRow, getColByName(studSheet, "8 dates"));
+  var attendancePut = studSheet.getRange(whichRow, getColByName(studSheet, "Attendance"));
+  put.clearContent();
+  var daysOfTheWeek = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  var diff = thisWeek.getDay()-1;
+  thisWeek.setDate(thisWeek.getDate() - diff);
+  thisWeek.setHours(0,0,0,0);
+  
+  thisWeek.setDate(thisWeek.getDate());
   var putStuffHere = "";
   var attendanceStuffHere = "";
   for(i=0;i<4;i++){
@@ -226,7 +265,7 @@ function eightDates(whichRow){
 
 
 function checkgguydfckjg(){
-  eightDates(1);
+  newEightDates(2);
 }
 
 
@@ -260,8 +299,8 @@ function fixAttendance(theString){
   return fixed;
 }
 
-
-function weeklyAttendanceUpdater(){
+/**
+function oldWeeklyAttendanceUpdater(){
   var startRow = 23;
   var aDate = new Date();
   aDate.setDate(aDate.getDate()+3);
@@ -299,4 +338,88 @@ function weeklyAttendanceUpdater(){
   putTWGs.setValues(thisWeekMUGs);
   putMUDs.clearContent();
   putMUSlots.clearContent();
+}
+**/
+
+
+function weeklyAttendanceUpdater(){
+  var theSpread = SpreadsheetApp.getActiveSpreadsheet();
+  var studSheet = theSpread.getSheetByName("Students");
+  var attendanceColumn = getColByName(studSheet, "Attendance");
+  
+  var startRow = 23;
+  var endRow = studSheet.getLastRow()-startRow+1;
+  var aDate = new Date();
+  aDate.setDate(aDate.getDate()-3);
+  var lastWeek = whichWeek(aDate);
+  
+  var putMUDs = studSheet.getRange(startRow, getColByName(studSheet, "MUD1")+lastWeek, endRow ,1);
+  var putMUSlots = studSheet.getRange(startRow, getColByName(studSheet, "MU1")+lastWeek, endRow ,1);
+  var putMUGs = studSheet.getRange(startRow, getColByName(studSheet, "MUG 1")+lastWeek, endRow ,1);
+  var putAttendances = studSheet.getRange(startRow, attendanceColumn, endRow ,1);
+  
+  var allAttendances = putAttendances.getValues().map(function(r){return r[0]});
+  
+  var resetMUGs = [];
+  var resetMe = [];
+  var forAttendance = [];
+  
+  for(i=0;i<allAttendances.length;i++){
+    resetMe.push(i+startRow);
+    forAttendance.push([fixAttendance(allAttendances[i])]);
+    resetMUGs.push([1]);
+  }
+  resetMe.forEach(eightDates);
+  putAttendances.setValues(forAttendance);
+  putMUGs.setValues(resetMUGs);
+  putMUDs.clearContent();
+  putMUSlots.clearContent();
+}
+
+
+function changeAttends(thisHoliday){
+
+  var theWeek = whichWeek(new Date(thisHoliday));
+
+  var theSpread = SpreadsheetApp.getActiveSpreadsheet();
+  var studSheet = theSpread.getSheetByName("Students");
+  
+  var startRow = 23;
+  var endRow = studSheet.getLastRow();
+  var totalRows = endRow - startRow + 1;
+  
+  var MUDColumn = studSheet.getRange(startRow, getColByName(studSheet, "MUD1") + theWeek, totalRows,1).getValues();
+  var eightDatesColumn = studSheet.getRange(startRow, getColByName(studSheet, "8 dates"), totalRows ,1).getValues();
+  var attendanceColumn = studSheet.getRange(startRow, getColByName(studSheet, "Attendance"), totalRows ,1).getValues();
+  var putMUDs = studSheet.getRange(startRow, getColByName(studSheet, "MUD1") + theWeek, totalRows,1)
+  var putAttends = studSheet.getRange(startRow, getColByName(studSheet, "Attendance"), totalRows ,1);
+  
+  var newAttends = [];
+  var newMUDs = [];
+  
+  for(a=0;a<attendanceColumn.length;a++){
+    var checkDates = eightDatesColumn[a][0].split(",");
+    var checkAttends = attendanceColumn[a][0].split(",");
+    var thisAttend = "";
+    var thisMUD = MUDColumn[a][0];
+    for(i=0;i<checkDates.length;i++){
+      if(checkDates[i].slice(11,-1) == thisHoliday){
+        thisAttend = thisAttend += "true,";
+        if(thisMUD == ""){
+          thisMUD = checkDates[i];
+        }
+      } else {
+        thisAttend = thisAttend += checkAttends[i] + ",";
+      }
+    }
+    newAttends.push([thisAttend]);
+    newMUDs.push([thisMUD]);
+  }
+  //putAttends.setValues(newAttends);
+  putMUDs.setValues(newMUDs);
+}
+
+
+function holidays(){
+  changeAttends("Feb 23");
 }
